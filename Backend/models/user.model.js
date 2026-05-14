@@ -28,7 +28,12 @@ password:{
     min:[6,"password should be at least 6 characters"],
 },socketid:{
     type:String,
-    default:"",}
+    default:"",
+},
+lastLogoutAt:{
+    type:Date,
+    default:null,
+}
 })
 
 userSchema.methods.generateAuthToken=function(){

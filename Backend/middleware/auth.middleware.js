@@ -19,6 +19,10 @@ module.exports.authUser=async(req,res,next)=>{
         if(!user){
             return res.status(401).json({message:"Unauthorized"});
         }
+        if (user.lastLogoutAt && decoded.iat && decoded.iat * 1000 <= new Date(user.lastLogoutAt).getTime()) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        req.token = token;
         req.user=user;
         next();
     } catch (error) {

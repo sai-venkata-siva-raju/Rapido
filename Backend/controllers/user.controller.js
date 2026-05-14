@@ -75,19 +75,21 @@ module.exports.profile = async (req, res) => {
 
 
 module.exports.logout = async (req, res) => {
-    const token = req.header('Authorization')?.replace('Bearer ','') || req.cookies.token;
+    const token = req.token || req.header('Authorization')?.replace('Bearer ','') || req.cookies.token;
 
     if (token) {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            await userModel.findByIdAndUpdate(decoded._id || decoded.id, {
+                lastLogoutAt: new Date(),
+            });
             await blacklistTokenModel.create({
                 token,
                 userId: decoded._id || decoded.id,
                 expiresAt: new Date(decoded.exp * 1000),
             });
         } catch (error) {
-            console.error('Error blacklisting token:', error);  
-            // Ignoreinvalid or already expired tokens during logout.
+            // Ignore invalid or already expired tokens during logout.
         }
     }
 

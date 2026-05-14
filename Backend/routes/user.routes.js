@@ -13,7 +13,7 @@ router.post('/register',[
 
 router.post('/login',userController.login);
 
-router.post('/logout',userController.logout);
+router.post('/logout',authMiddleware.authUser,userController.logout);
 
 router.get('/profile',authMiddleware.authUser,userController.profile);
 
