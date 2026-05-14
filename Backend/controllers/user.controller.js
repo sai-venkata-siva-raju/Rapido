@@ -1,5 +1,13 @@
 const userModel=require('../models/user.model');
+const jwt=require('jsonwebtoken');
+const blacklistTokenModel=require('../models/blacklistToken.model');
 
+const cookieOptions = {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 1000,
+};
 
 module.exports.register=async(req,res,next)=>{
     try {
@@ -27,6 +35,7 @@ module.exports.register=async(req,res,next)=>{
         // Generate auth token
         const token = newUser.generateAuthToken();
 
+        res.cookie('token', token, cookieOptions);
         res.status(201).json({ token, user: newUser });
     } catch (error) {
         next(error);
@@ -49,6 +58,7 @@ module.exports.login = async (req, res, next) => {
 
         const token = user.generateAuthToken();
 
+        res.cookie('token', token, cookieOptions);
         res.status(200).json({ token, user });
     } catch (error) {
         next(error);
@@ -65,5 +75,22 @@ module.exports.profile = async (req, res) => {
 
 
 module.exports.logout = async (req, res) => {
+    const token = req.header('Authorization')?.replace('Bearer ','') || req.cookies.token;
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            await blacklistTokenModel.create({
+                token,
+                userId: decoded._id || decoded.id,
+                expiresAt: new Date(decoded.exp * 1000),
+            });
+        } catch (error) {
+            console.error('Error blacklisting token:', error);  
+            // Ignoreinvalid or already expired tokens during logout.
+        }
+    }
+
+    res.clearCookie('token', cookieOptions);
     res.status(200).json({ message: 'Logged out successfully' });
 };
