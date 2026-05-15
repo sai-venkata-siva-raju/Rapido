@@ -71,15 +71,21 @@ module.exports.loginCaptain = async (req, res, next) => {
 
 module.exports.logoutCaptain = async (req, res, next) => {
     try {
-        const token = req.cookies.token;
+        const token = req.header('Authorization')?.replace('Bearer ','') || req.cookies.token;
         if (token) {
-            // Add token to blacklist
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            await blacklistTokenModel.create({ token, expiresAt: new Date(decoded.exp * 1000) });
-
-            // Clear cookie
-            res.clearCookie('token', cookieOptions);
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                await blacklistTokenModel.create({
+                    token,
+                    userId: decoded._id || decoded.id,
+                    expiresAt: new Date(decoded.exp * 1000),
+                });
+            } catch (error) {
+                // Ignore invalid or already expired tokens during logout.
+            }
         }
+        // Clear cookie even if the token is missing or already invalid.
+        res.clearCookie('token', cookieOptions);
         res.json({ message: "Logged out successfully" });
     } catch (error) {
         next(error);

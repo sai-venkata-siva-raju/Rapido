@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const captainController = require("../controllers/captain.controller");
 const {body} = require("express-validator");
+const { authCaptain } = require("../middleware/auth.middleware");
 
 router.post("/register", [
     body("email").isEmail().normalizeEmail(),
@@ -18,7 +19,7 @@ router.post("/login", captainController.loginCaptain);
 
 router.post("/logout", captainController.logoutCaptain);
 
-router.get("/profile", captainController.getCaptainProfile);
+router.get("/profile",authCaptain, captainController.getCaptainProfile);
 
 router.put("/profile", [
     body("email").optional().isEmail().normalizeEmail(),

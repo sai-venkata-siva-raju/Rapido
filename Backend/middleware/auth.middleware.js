@@ -1,4 +1,5 @@
 const userModel=require('../models/user.model');
+const captainmodel=require('../models/captain.model');
 const jwt=require('jsonwebtoken');
 const blacklistTokenModel=require('../models/blacklistToken.model');
 
@@ -57,4 +58,3 @@ module.exports.authCaptain=async(req,res,next)=>{
         return res.status(401).json({message:"Unauthorized"});
     } 
 };
-
