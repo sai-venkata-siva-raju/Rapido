@@ -1,6 +1,7 @@
 const captainmodel = require("../models/captain.model");
 const blacklistTokenModel=require('../models/blacklistToken.model');
 const jwt = require('jsonwebtoken');
+const { getIO } = require("../socket");
 
 const cookieOptions = {
     httpOnly: true,
@@ -139,6 +140,25 @@ module.exports.updateCaptainLocation = async (req, res, next) => {
         if (!updatedCaptain) {
             return res.status(404).json({ message: "Captain not found" });
         }
+
+        try {
+            const rides = await require("../models/ride.model").find({
+                captainId,
+                status: { $in: ["accepted", "in_progress"] },
+            });
+
+            rides.forEach((ride) => {
+                getIO().to(`ride:${ride._id}`).emit("ride:captain-location", {
+                    rideId: String(ride._id),
+                    captainId: String(captainId),
+                    latitude,
+                    longitude,
+                });
+            });
+        } catch (socketError) {
+            // Socket broadcasting is best-effort here.
+        }
+
         res.json(updatedCaptain);
     } catch (error) {
         next(error);

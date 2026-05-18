@@ -32,6 +32,6 @@ router.put("/profile", [
     body("verhicle.vehicleType").optional().isIn(['car', 'motorcycle', 'van']),
 ], captainController.updateCaptainProfile);
 
-router.post("/location", captainController.updateCaptainLocation);  
+router.post("/location", authCaptain, captainController.updateCaptainLocation);  
 
 module.exports = router;
