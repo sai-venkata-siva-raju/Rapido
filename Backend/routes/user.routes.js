@@ -12,6 +12,14 @@ router.post('/register',[
 ],userController.register);
 
 router.post('/login',userController.login);
+router.post('/forgot-password', [
+    body('email').isEmail().normalizeEmail(),
+], userController.requestPasswordReset);
+router.post('/reset-password', [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').notEmpty().withMessage("OTP is required"),
+    body('newPassword').isLength({ min: 6 }).withMessage("password should be at least 6 characters"),
+], userController.resetPasswordWithOtp);
 
 router.post('/logout',authMiddleware.authUser,userController.logout);
 

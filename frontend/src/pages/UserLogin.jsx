@@ -99,6 +99,14 @@ const UserLogin = () => {
               onChange={handleChange}
               className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-black focus:border-black transition"
             />
+            <div className="mt-2 text-right">
+              <Link
+                to="/forgot-password/user"
+                className="text-xs font-medium text-gray-500 hover:text-black hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Login Button */}

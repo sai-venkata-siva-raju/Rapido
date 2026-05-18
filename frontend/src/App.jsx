@@ -1,5 +1,5 @@
 
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Start from "./pages/Start";
 import UserLogin from "./pages/UserLogin";
 import UserSignup from "./pages/UserSignup";
@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import UserProtectWraper from "./pages/UserProtectWraper";
 import Profile from "./pages/Profile";
 import CaptainHome from "./pages/CaptainHome";
+import PasswordReset from "./pages/PasswordReset";
 
 const App = () => {
   return (
@@ -44,6 +45,9 @@ const App = () => {
         <Route path="/signup" element={<UserSignup />} />
         <Route path="/captain-login" element={<CaptainLogin />} />
         <Route path="/captain-signup" element={<CaptainSignup />} />
+        <Route path="/forgot-password" element={<Navigate to="/forgot-password/user" replace />} />
+        <Route path="/forgot-password/:role" element={<PasswordReset />} />
+        <Route path="/reset-password/:role" element={<PasswordReset />} />
       </Routes>
     </div>
   );

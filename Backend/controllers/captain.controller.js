@@ -2,6 +2,12 @@ const captainmodel = require("../models/captain.model");
 const blacklistTokenModel=require('../models/blacklistToken.model');
 const jwt = require('jsonwebtoken');
 const { getIO } = require("../socket");
+const {
+    generateResetOtp,
+    hashResetOtp,
+    getOtpExpiry,
+    sendResetOtpEmail,
+} = require("../utils/passwordReset");
 
 const cookieOptions = {
     httpOnly: true,
@@ -160,6 +166,66 @@ module.exports.updateCaptainLocation = async (req, res, next) => {
         }
 
         res.json(updatedCaptain);
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports.requestPasswordReset = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const captain = await captainmodel.findOne({ email });
+
+        if (!captain) {
+            return res.status(404).json({ message: "No captain account found for that email" });
+        }
+
+        const otp = generateResetOtp();
+        captain.passwordResetOtpHash = hashResetOtp(otp);
+        captain.passwordResetOtpExpiresAt = getOtpExpiry();
+        await captain.save();
+
+        const delivery = await sendResetOtpEmail({ email, otp, role: "captain" });
+
+        res.status(200).json({
+            message: "Password reset OTP sent to your email",
+            ...(delivery.delivered ? {} : { devOtp: otp }),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports.resetPasswordWithOtp = async (req, res, next) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        const captain = await captainmodel.findOne({ email });
+
+        if (!captain) {
+            return res.status(404).json({ message: "No captain account found for that email" });
+        }
+
+        if (!captain.passwordResetOtpHash || !captain.passwordResetOtpExpiresAt) {
+            return res.status(400).json({ message: "No password reset OTP was requested for this account" });
+        }
+
+        if (captain.passwordResetOtpExpiresAt < new Date()) {
+            captain.passwordResetOtpHash = null;
+            captain.passwordResetOtpExpiresAt = null;
+            await captain.save();
+            return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+        }
+
+        if (hashResetOtp(otp) !== captain.passwordResetOtpHash) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        captain.password = await captain.hashPassword(newPassword);
+        captain.passwordResetOtpHash = null;
+        captain.passwordResetOtpExpiresAt = null;
+        await captain.save();
+
+        res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
         next(error);
     }

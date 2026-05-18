@@ -22,7 +22,9 @@ const captainSchema = new mongoose.Schema({
     location: {
         latitude: { type: Number },
         longitude: { type: Number }
-    }
+    },
+    passwordResetOtpHash: { type: String, default: null },
+    passwordResetOtpExpiresAt: { type: Date, default: null },
 }, { timestamps: true });
 
 captainSchema.methods.hashPassword = async function(password) {

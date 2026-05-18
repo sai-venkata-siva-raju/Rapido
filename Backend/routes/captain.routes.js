@@ -16,6 +16,14 @@ router.post("/register", [
 ], captainController.registerCaptain);
 
 router.post("/login", captainController.loginCaptain);
+router.post("/forgot-password", [
+    body("email").isEmail().normalizeEmail(),
+], captainController.requestPasswordReset);
+router.post("/reset-password", [
+    body("email").isEmail().normalizeEmail(),
+    body("otp").notEmpty().withMessage("OTP is required"),
+    body("newPassword").isLength({ min: 6 }).withMessage("password should be at least 6 characters"),
+], captainController.resetPasswordWithOtp);
 
 router.post("/logout", captainController.logoutCaptain);
 
