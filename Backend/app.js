@@ -8,6 +8,7 @@ const userRoutes = require('./routes/user.routes');
 const swaggerSpec = require('./docs/swagger');
 const cookieParser = require('cookie-parser');
 const captainRoutes = require('./routes/captain.routes');
+const MapsRoutes = require('./routes/maps.routes');
 
 app.use(cookieParser());
 
@@ -25,6 +26,7 @@ app.get('/api-docs/', swaggerUi.setup(swaggerSpec));
 
 app.use('/api/users', userRoutes);
 app.use('/api/captains', captainRoutes);
+app.use('/api/maps', MapsRoutes);
 
 app.get('/',(req,res)=>{
     res.send('Hello World!');
